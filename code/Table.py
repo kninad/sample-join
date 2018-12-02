@@ -20,12 +20,19 @@ class Table:
     def insert_tuple(self, tuple_dict):
         for k, v in tuple_dict:
             self.data[k].append(v)
-        
+
+    def insert_list(self, data):
+        if len(data) != len(self.columns):
+            print(self.columns)
+            print(data)
+            raise ValueError('Data length does not match column length')
+        for i in range(len(self.columns)):
+            self.data[self.columns[i]].append(data[i])
 
 def make_table(name, column_list=[]):
     log.info("Creating table: %s"%name)
     log.info("%s contains columns: %s"%(name, column_list))
-    return Table(column_list)
+    return Table(name, columns=column_list)
 
         
 
