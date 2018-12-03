@@ -23,7 +23,6 @@ class TPCH:
     def __init__(self):
         log.info("Initializing TPCH schema.")
         self.create_db()
-        # TODO populate schema from the files with csv
     
     def create_db(self):
         self.tables = {}
