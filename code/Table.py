@@ -51,6 +51,15 @@ class Table:
     def has_index(self, column):
         return column in self.index
 
+    def iterate_column(self, column):
+        i = 0
+        while i < len(self.data[column]):
+            yield i, self.data[column][i]
+            i += 1
+
+    def get_row(self, index):
+        return [self.data[c][index] for c in self.columns]
+
 def make_table(name, column_list=[], indexes=[]):
     log.info("Creating table: %s"%name)
     log.info("%s contains columns: %s"%(name, column_list))

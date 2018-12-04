@@ -2,6 +2,7 @@ import ConfigParser
 import os, logging
 import argparse
 from Table import make_table
+from join import simple_join
 
 
 log = logging.getLogger(__name__)
@@ -67,3 +68,7 @@ if __name__=="__main__":
         for line in f:
             data = line.split('|')[:-1]
             tpch.tables[table].insert_list(data)
+
+    tables = [tpch.tables['nation'], tpch.tables['region']]
+    column_pairs = [('REGIONKEY', 'REGIONKEY')]
+    result = simple_join(tables, column_pairs)
