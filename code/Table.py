@@ -42,6 +42,12 @@ class Table:
             pointer = len(self.data[column]) - 1
             self.index[column][value].append(pointer)
 
+    def get_name(self):
+        return self.name
+
+    def get_columns(self):
+        return self.columns
+
     def has_index(self, column):
         return column in self.index
 
