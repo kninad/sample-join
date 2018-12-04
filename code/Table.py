@@ -42,6 +42,9 @@ class Table:
             pointer = len(self.data[column]) - 1
             self.index[column][value].append(pointer)
 
+    def has_index(self, column):
+        return column in self.index
+
 def make_table(name, column_list=[], indexes=[]):
     log.info("Creating table: %s"%name)
     log.info("%s contains columns: %s"%(name, column_list))
