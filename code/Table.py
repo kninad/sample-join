@@ -45,20 +45,29 @@ class Table:
     def get_name(self):
         return self.name
 
-    def get_columns(self):
-        return self.columns
+    def get_columns(self, prepend_table_name=False):
+        if not prepend_table_name:
+            return self.columns
+        else:
+            return ['%s.%s' % (self.get_name(), c) for c in self.columns]
 
     def has_index(self, column):
         return column in self.index
 
     def iterate_column(self, column):
-        i = 0
-        while i < len(self.data[column]):
-            yield i, self.data[column][i]
-            i += 1
+        for idx, data in enumerate(self.data[column]):
+            yield idx, data
 
-    def get_row(self, index):
-        return [self.data[c][index] for c in self.columns]
+    def iterate_index(self, column, value):
+        if column in self.index and value in self.index[column]:
+            for idx in self.index[column][value]:
+                yield idx
+
+    def get_count(self):
+        return len(self.data[self.columns[0]])
+
+    def get_row(self, idx): # TODO: non-immutable object
+        return [self.data[c][idx] for c in self.columns]
 
 def make_table(name, column_list=[], indexes=[]):
     log.info("Creating table: %s"%name)

@@ -2,7 +2,7 @@ import ConfigParser
 import os, logging
 import argparse
 from Table import make_table
-from join import simple_join
+from join import two_table_simple_join
 
 
 log = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class TPCH:
 
         self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST", "COMMENT"])
 
-        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"])
+        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"], indexes=["REGIONKEY"])
 
         self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY", "PHONE", "ACCTBAL", "COMMENT"])
 
@@ -71,4 +71,4 @@ if __name__=="__main__":
 
     tables = [tpch.tables['nation'], tpch.tables['region']]
     column_pairs = [('REGIONKEY', 'REGIONKEY')]
-    result = simple_join(tables, column_pairs)
+    result = two_table_simple_join(tables[0], tables[1], column_pairs[0][0], column_pairs[0][1])
