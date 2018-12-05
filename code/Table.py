@@ -59,6 +59,19 @@ class Table:
 
     def get_row(self, index):
         return [self.data[c][index] for c in self.columns]
+    
+
+    def get_freq(self, column, value):
+        return len(self.index[column][value])
+    
+    def get_max_freq(self, column):
+        maxval = 0
+        for key in self.index[column].keys():
+            val = len(self.index[column][key])
+            if val >= maxval:
+                maxval = val
+        return maxval
+
 
 def make_table(name, column_list=[], indexes=[]):
     log.info("Creating table: %s"%name)
