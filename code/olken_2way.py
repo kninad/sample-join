@@ -6,7 +6,7 @@ TODO:
 - using the already built-in index to compute the attributes
 '''
 
-def get_uniform_sample(table1, table2, join_column):
+def get_olken_sample_2way(table1, table2, join_column):
     N1 = len(table1.data[join_column])
     retval = None
     flag = False
@@ -27,8 +27,4 @@ def get_uniform_sample(table1, table2, join_column):
             retval = (rand_idx1, rand_idx2)
     
     return retval
-
-
-
-
 
