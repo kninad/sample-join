@@ -2,7 +2,7 @@ import ConfigParser
 import os, logging
 import argparse
 from Table import make_table
-from join import two_table_simple_join
+from join import *
 
 
 log = logging.getLogger(__name__)
@@ -28,19 +28,19 @@ class TPCH:
     def create_db(self):
         self.tables = {}
 
-        self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY", "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"])
+        self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY", "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"], indexes=['CUSTKEY'])
 
-        self.tables['lineitem'] = make_table("LINEITEM", column_list=["ORDERKEY", "PARTKEY", "SUPPKEY", "LINENUMBER", "QUANTITY", "EXTENDEDPRICE", "DISCOUNT", "TAX", "RETURNFLAG", "LINESTATUS", "SHIPDATE", "COMMITDATE", "RECEIPTDATE", "SHIPINSTRUCT", "SHIPMODE", "COMMENT"])
+        self.tables['lineitem'] = make_table("LINEITEM", column_list=["ORDERKEY", "PARTKEY", "SUPPKEY", "LINENUMBER", "QUANTITY", "EXTENDEDPRICE", "DISCOUNT", "TAX", "RETURNFLAG", "LINESTATUS", "SHIPDATE", "COMMITDATE", "RECEIPTDATE", "SHIPINSTRUCT", "SHIPMODE", "COMMENT"], indexes=['ORDERKEY', 'PARTKEY'])
 
         self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"])
 
-        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE", "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY", "COMMENT"])
+        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE", "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY", "COMMENT"], indexes=['CUSTKEY', 'ORDERKEY'])
 
-        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE", "CONTAINER", "RETAILPRICE", "COMMENT"])
+        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE", "CONTAINER", "RETAILPRICE", "COMMENT"], indexes=['PARTKEY'])
 
         self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST", "COMMENT"])
 
-        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"], indexes=["REGIONKEY"])
+        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"])
 
         self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY", "PHONE", "ACCTBAL", "COMMENT"])
 
@@ -69,6 +69,7 @@ if __name__=="__main__":
             data = line.split('|')[:-1]
             tpch.tables[table].insert_list(data)
 
-    tables = [tpch.tables['nation'], tpch.tables['region']]
-    column_pairs = [('REGIONKEY', 'REGIONKEY')]
-    result = two_table_simple_join(tables[0], tables[1], column_pairs[0][0], column_pairs[0][1])
+    tables = [tpch.tables['customer'], tpch.tables['orders'], tpch.tables['lineitem'], tpch.tables['part']]
+    column_pairs = [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY'), ('PARTKEY', 'PARTKEY')]
+    result = chain_join(tables, column_pairs, tbl_name=True)
+    print(len(result.data[result.data.keys()[0]]))

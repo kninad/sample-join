@@ -45,8 +45,8 @@ class Table:
     def get_name(self):
         return self.name
 
-    def get_columns(self, prepend_table_name=False):
-        if not prepend_table_name:
+    def get_columns(self, tbl_name=False):
+        if not tbl_name or self.name == None:
             return self.columns
         else:
             return ['%s.%s' % (self.get_name(), c) for c in self.columns]
