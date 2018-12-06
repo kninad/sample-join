@@ -4,6 +4,7 @@ import numpy as np
 TODO:
 - statistics in table as an attribute
 - using the already built-in index to compute the attributes
+- Set the MAX freq, NORMAL while a building the index 
 '''
 
 def get_olken_sample_2way(table1, table2, join_column):
