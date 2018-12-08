@@ -1,5 +1,6 @@
 from Table import make_table
 
+
 def two_table_simple_join(t1, t2, c1, c2, tbl_name=True):
     # define join algorithms, both scan and index
     def join_without_index(t1, t2, c1, c2):
@@ -9,6 +10,7 @@ def two_table_simple_join(t1, t2, c1, c2, tbl_name=True):
                 if value1 == value2:
                     row2 = t2.get_row(index2)
                     yield row1 + row2
+
     def join_with_index(t1, t2, c1, c2):
         for index1, value1 in t1.iterate_column(c1):
             row1 = t1.get_row(index1)
@@ -42,6 +44,7 @@ def two_table_simple_join(t1, t2, c1, c2, tbl_name=True):
     for row in join_function(t1, t2, c1, c2):
         result.insert_list(row)
     return result
+
 
 def chain_join(tables, column_pairs, tbl_name=True):
     result = two_table_simple_join(tables[0], tables[1], column_pairs[0][0], 

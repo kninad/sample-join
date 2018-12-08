@@ -7,6 +7,7 @@ TODO:
 - Set the MAX freq, NORMAL while a building the index 
 '''
 
+
 def get_olken_sample_2way(table1, table2, join_column):
     N1 = len(table1.data[join_column])
     retval = None

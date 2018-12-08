@@ -5,6 +5,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class Table:
     def __init__(self, name, columns=[], indexes=[]):
         self.data = {} # all data in this table.
@@ -17,6 +18,9 @@ class Table:
     def create_table(self):
         for col in self.columns:
             self.data[col] = []
+
+        self.data["tuple_weights"] = [] # w(t) for each tuple.
+
         for index in self.indexes:
             if index in self.data:
                 self.index[index] = {}
@@ -25,6 +29,7 @@ class Table:
         for k, v in tuple_dict:
             self.data[k].append(v)
             self.insert_into_index(k, v)
+            self.data["tuple_weights"].append(None)
 
     def insert_list(self, data):
         if len(data) != len(self.columns):
@@ -46,7 +51,7 @@ class Table:
         return self.name
 
     def get_columns(self, tbl_name=False):
-        if not tbl_name or self.name == None:
+        if not tbl_name or self.name is not None:
             return self.columns
         else:
             return ['%s.%s' % (self.get_name(), c) for c in self.columns]
@@ -80,12 +85,12 @@ class Table:
     def get_row(self, idx): # TODO: non-immutable object
         return [self.data[c][idx] for c in self.columns]
 
+
 def make_table(name, column_list=[], indexes=[]):
     log.info("Creating table: %s"%name)
     log.info("%s contains columns: %s"%(name, column_list))
     return Table(name, columns=column_list, indexes=indexes)
 
-        
 
 if __name__=="__main__":
     
