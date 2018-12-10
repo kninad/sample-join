@@ -36,8 +36,13 @@ class Table:
             pointer = len(self.data[column]) - 1
             self.index[column][value].append(pointer)
             count = len(self.index[column][value])
-            if count > self.max_freq[column][1]:
-                self.max_freq[column] = (value, count)
+            if count > self.max_freq[column]:
+                self.max_freq[column] = count
+
+    def get_max_freq_for_column(self, column):
+        if column not in self.max_freq:
+            raise NameError('Column not in table index: <%s>' % column)
+        return self.max_freq[column]
 
     def get_name(self):
         return self.name
