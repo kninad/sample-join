@@ -11,6 +11,7 @@ class Table:
         self.index = {} # all indexed attribute pointers
         self.columns = columns # names of all attributes.
         self.indexes = indexes # names of attributes to have a hash index on
+        self.max_freq = {} # value and freq for max value occurence per column
         self.name = name
         self.create_table()
 
@@ -20,16 +21,9 @@ class Table:
         for index in self.indexes:
             if index in self.data:
                 self.index[index] = {}
-        
-    def insert_tuple(self, tuple_dict):
-        for k, v in tuple_dict:
-            self.data[k].append(v)
-            self.insert_into_index(k, v)
 
     def insert_list(self, data):
         if len(data) != len(self.columns):
-            print(self.columns)
-            print(data)
             raise ValueError('Data length does not match column length')
         for i in range(len(self.columns)):
             self.data[self.columns[i]].append(data[i])
@@ -41,6 +35,14 @@ class Table:
                 self.index[column][value] = []
             pointer = len(self.data[column]) - 1
             self.index[column][value].append(pointer)
+            count = len(self.index[column][value])
+            if count > self.max_freq[column]:
+                self.max_freq[column] = count
+
+    def get_max_freq_for_column(self, column):
+        if column not in self.max_freq:
+            raise NameError('Column not in table index: <%s>' % column)
+        return self.max_freq[column]
 
     def get_name(self):
         return self.name
@@ -65,17 +67,6 @@ class Table:
 
     def get_count(self):
         return len(self.data[self.columns[0]])
-
-    def get_freq(self, column, value):
-        return len(self.index[column][value])
-    
-    def get_max_freq(self, column):
-        maxval = 0
-        for key in self.index[column].keys():
-            val = len(self.index[column][key])
-            if val >= maxval:
-                maxval = val
-        return maxval
 
     def get_row(self, idx): # TODO: non-immutable object
         return [self.data[c][idx] for c in self.columns]
