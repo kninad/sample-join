@@ -1,73 +1,140 @@
 """
 Implementation of Exact Weight algorithms.
 """
-import numpy as np
 
 
-def compute_w_t(table_list, join_columns, join_idx=None, table_idx=None):
+class ExactWeight:
 
-    if table_idx is None:
-        # start the computation.
-        table_idx = len(table_list)-1
-        current_table = table_list[table_idx]
-        n_tuples = len(current_table.data["tuple_weight"])
-        current_table.data["tuple_weight"] = [1]*n_tuples
-        # setting w(t) for all tuples in the final table as 1.
+    def __init__(self, table_pairs, join_pairs):
+        self.weights = dict()
+        assert len(table_pairs) == len(join_pairs), "Ninad goofed up."
+        self.table_pairs = table_pairs
+        self.join_pairs = join_pairs
+        self.create_dictionary()
+        self.compute_weights(table_pairs, join_pairs, start=True)
 
-        join_idx = len(join_columns) - 1
+    def create_dictionary(self):
+        """
+        Creates the place holder dictionary for the weights.
+        """
 
-        compute_w_t(table_list, join_columns, join_idx, table_idx-1) # go to one table previous.
+        for table_pair, col_pair in zip(self.table_pairs, self.join_pairs):
+            table1, table2 = table_pair
+            col1, col2 = col_pair
 
-    elif table_idx>=0:
-        current_table = table_list[table_idx]
-        join_column = join_columns[join_idx]
+            if table1.name in self.weights:
+                self.weights[table1.name].update({col1: {}})
+            else:
+                self.weights[table1.name] = {col1: {}}
 
-        next_table = table_list[table_idx+1]
+            if table2.name in self.weights:
+                self.weights[table2.name].update({col2: {}})
+            else:
+                self.weights[table2.name] = {col2: {}}
 
-        for t_idx, t_val in enumerate(current_table.data[join_column]):
+    def compute_weights(self, join_idx=None, table_idx=None, start=False):
+        """
 
-            matching_t_idx = next_table.index[join_column][t_val]
-            # all tuples in the next table that have t_val in the join column.
+        :param table_list: List of table references.
+        :param join_columns: List of join column names.
+        :param join_idx: index of join in the join_columns list. T_0 and T_1 are joined by the column at join_idx= 0
+        :param table_idx: index of table to compute weights on.
+        :param weights: dictionary to cache the weights from the table to the right in the join sequence.
+        :param start: flag to be set at the start of the computation.
+        :return:
+        """
+        if start:
+            # start the computation.
+            table_idx = len(self.table_pairs)-1
+            _, last_table = self.table_pairs[table_idx]
 
-            w_t = [next_table.data["tuple_weights"][idx] for idx in matching_t_idx]
+            join_idx = len(self.join_pairs) - 1
+            current_join = self.join_pairs[join_idx]
+            col1, col2 = current_join
 
-            current_table.data["tuple_weights"][t_idx] = sum(w_t)
-            compute_w_t(table_list, join_columns, join_idx-1, table_idx-1)
-    else:
-        return
+            assert last_table.has_index(col2), "Missing index."
+            distinct_values = last_table.index[col2].keys()
+
+            for val in distinct_values:
+                self.weights[last_table.name][col2][val] = 1
+                # setting w(t) for all tuples in the final table's join column as 1.
+
+            self.compute_weights(join_idx, table_idx)  # go to one table previous.
+
+        elif self.weights is not None and table_idx >= 0:
+
+            current_table = self.table_pairs[table_idx]
+            next_table = self.table_pairs[table_idx+1]
+            current_join = self.join_pairs[join_idx]
+            col1, col2 = current_join
+
+            assert current_table.has_index(col1), "Missing index."
+            assert next_table.has_index(col2), "Missing index."
+
+            for t_val in current_table.index[col1].keys():  # distinct values in the join column.
+
+                w_t = self.weights[next_table.name][col2].get(t_val, 0)  # Thanks Corey.
+
+                if w_t > 0:
+                    n_occurences = len(next_table.index[col2][t_val])
+                    w_t_new = w_t*n_occurences
+                else:
+                    w_t_new = 0
+
+                self.weights[current_table.name][col1][t_val] = w_t_new
+                self.compute_weights(join_idx-1, table_idx-1)
+
+        else:
+            return
+
+    def compute_tuple_weight(self, tuple_index, join_index):
+        table1, _ = self.table_pairs[join_index]
+        col1, _ = self.join_pairs[join_index]
+        t_val = table1.data[col1][tuple_index]
+        return self.weights[table1.name][col1][t_val]
+
+    def compute_relation_weight(self, tuple_index, join_index):
+        """
+        Semi join.
+        :param t_idx:
+        :param table:
+        :param join_col:
+        :return:
+        """
+        table1, table2 = self.table_pairs[join_index]
+        col1, col2 = self.join_pairs[join_index]
+
+        t_val = table1.data[col1][tuple_index]
+        matching_tuples = table2.index[col2].get(t_val, [])
+        n_occurences = len(matching_tuples)
+
+        w_t = self.weights[table2.name][col2].get(t_val, 0)
+
+        return w_t * n_occurences
+
+    def compute_total_weight(self):
+        """
+        Base case for the sampler.
+        :param table:
+        :return:
+        """
+
+        table1, _ = self.table_pairs[0]
+        col1, _ = self.join_pairs[0]
+
+        if len(self.weights[table1.name].keys()) > 1:
+            print "Warning, there are more than two columns in this weights table."
+
+        total = 0
+        for _, v in self.weights[table1][col1].items():
+            total += v
+        return total
 
 
-def get_chaudhuri_sample_2way(table1, table2, join_column):
-    """
-    Basic 2way Chaudhuri sample join.
-    :param table1:
-    :param table2:
-    :param join_column:
-    :return:
-    """
+if __name__=="__main__":
+    pass
 
-    candidates = table2.index[join_column].keys()
-    frequencies = []
-    for k in candidates:
-        current_freq = len(table2.index[join_column][k])
-        frequencies.append(current_freq)
 
-    probabilities = np.array(frequencies, dtype=np.float32)/np.sum(frequencies)
-
-    idx = np.random.choice(len(candidates), p=probabilities)
-
-    desired_candidate = candidates[idx]
-
-    possible_t1_tuples = table1.index[join_column][desired_candidate]
-    possible_t2_tuples = table2.index[join_column][desired_candidate]
-
-    # all tuples with join_col = desired candidate
-
-    t1_sample_idx = np.random.choice(possible_t1_tuples)
-    t2_sample_idx = np.random.choice(possible_t2_tuples)
-
-    tuple1 = table1.get_row(t1_sample_idx)
-    tuple2 = table2.get_row(t2_sample_idx)
-
-    return (t1_sample_idx, t2_sample_idx), (tuple1, tuple2)
-
+###############################################################################
+# // And it's too late to lose the weight you used to need to throw around.// #
+###############################################################################
