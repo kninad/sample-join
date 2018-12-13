@@ -52,7 +52,7 @@ class Table:
         return self.name
 
     def get_columns(self, tbl_name=False):
-        if not tbl_name or self.name is not None:
+        if not tbl_name or self.name is None:
             return self.columns
         else:
             return ['%s.%s' % (self.get_name(), c) for c in self.columns]
