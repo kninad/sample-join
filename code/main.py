@@ -7,10 +7,12 @@ from join import *
 
 log = logging.getLogger(__name__)
 
+
 def read_config(configpath='config.ini'):
     config = ConfigParser.RawConfigParser()
     config.read(configpath)
     return config
+
 
 def getargs():
     parser = argparse.ArgumentParser()
@@ -18,6 +20,7 @@ def getargs():
     parser.add_argument("--log", default="log.txt", help="Path to log file.")
     args = parser.parse_args()
     return args
+
 
 class TPCH:
 
@@ -28,21 +31,34 @@ class TPCH:
     def create_db(self):
         self.tables = {}
 
-        self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY", "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"], indexes=['CUSTKEY'])
+        self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY",
+                                                                      "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"],
+                                             indexes=['CUSTKEY'])
 
-        self.tables['lineitem'] = make_table("LINEITEM", column_list=["ORDERKEY", "PARTKEY", "SUPPKEY", "LINENUMBER", "QUANTITY", "EXTENDEDPRICE", "DISCOUNT", "TAX", "RETURNFLAG", "LINESTATUS", "SHIPDATE", "COMMITDATE", "RECEIPTDATE", "SHIPINSTRUCT", "SHIPMODE", "COMMENT"], indexes=['ORDERKEY', 'PARTKEY'])
+        self.tables['lineitem'] = make_table("LINEITEM", column_list=["ORDERKEY", "PARTKEY", "SUPPKEY", "LINENUMBER",
+                                                                      "QUANTITY", "EXTENDEDPRICE", "DISCOUNT", "TAX",
+                                                                      "RETURNFLAG", "LINESTATUS", "SHIPDATE",
+                                                                      "COMMITDATE", "RECEIPTDATE", "SHIPINSTRUCT",
+                                                                      "SHIPMODE", "COMMENT"],
+                                             indexes=['ORDERKEY', 'PARTKEY'])
 
         self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"])
 
-        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE", "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY", "COMMENT"], indexes=['CUSTKEY', 'ORDERKEY'])
+        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE",
+                                                                  "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY",
+                                                                  "COMMENT"], indexes=['CUSTKEY', 'ORDERKEY'])
 
-        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE", "CONTAINER", "RETAILPRICE", "COMMENT"], indexes=['PARTKEY'])
+        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE",
+                                                              "CONTAINER", "RETAILPRICE", "COMMENT"],
+                                         indexes=['PARTKEY'])
 
-        self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST", "COMMENT"])
+        self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST",
+                                                                         "COMMENT"])
 
         self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"])
 
-        self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY", "PHONE", "ACCTBAL", "COMMENT"])
+        self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY",
+                                                                      "PHONE", "ACCTBAL", "COMMENT"])
 
         log.info("------------------------")
         log.info("Created TPCH Schema.")
