@@ -53,6 +53,8 @@ class GeneralizedOlkens:
         W_t = 1
         join_column = self.join_pairs[0][0]
         for value in self.table_pairs[0].index[join_column]:
+        # for value in self.table_pairs[0][0].index[join_column]:
             tuples = self.table_pairs[0].index[join_column][value][0]
+            # tuples = self.table_pairs[0][0].index[join_column][value][0]
             W_t += (self.compute_tuple_weight(tuples[0], 0) * len(tuples))
         return W_t

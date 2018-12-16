@@ -85,7 +85,13 @@ if __name__=="__main__":
             data = line.split('|')[:-1]
             tpch.tables[table].insert_list(data)
 
-    tables = [tpch.tables['customer'], tpch.tables['orders'], tpch.tables['lineitem'], tpch.tables['part']]
-    column_pairs = [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY'), ('PARTKEY', 'PARTKEY')]
-    result = chain_join(tables, column_pairs, tbl_name=True)
-    print(len(result.data[result.data.keys()[0]]))
+    tables = [(tpch.tables['customer'], tpch.tables['orders']), (tpch.tables['orders'], tpch.tables['lineitem'])]
+    column_pairs = [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY')]
+
+
+    from algo1 import *
+    num_samp = 2
+    method = 'Extended-Olken'
+    samps = sampler(num_samp, method, tables, column_pairs)
+    # result = chain_join(tables, column_pairs, tbl_name=True)
+    # print(len(result.data[result.data.keys()[0]]))
