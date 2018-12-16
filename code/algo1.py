@@ -6,16 +6,14 @@ from generalizing_olken import GeneralizedOlkens
 from exact_weight import ExactWeight
 
 
-def full_weight_table(join_index, wtcomp_obj):
-    table = wtcomp_obj.table_pairs[join_index][0]
-    colmn = wtcomp_obj.join_pairs[join_index][0]   # join column
-    total_len = len(table.data[colmn])
-    weight_sum = 0
-    for i in range(total_len):
-        weight_sum += wtcomp_obj.compute_tuple_weight(i, join_index)
-
-    return weight_sum
-
+# def full_weight_table(join_index, wtcomp_obj):
+#     table = wtcomp_obj.table_pairs[join_index][0]
+#     colmn = wtcomp_obj.join_pairs[join_index][0]   # join column
+#     total_len = len(table.data[colmn])
+#     weight_sum = 0
+#     for i in range(total_len):
+#         weight_sum += wtcomp_obj.compute_tuple_weight(i, join_index)
+#     return weight_sum
 
 
 def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
@@ -57,7 +55,6 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
     return
 
 
-
 def get_single_sample(table_pairs, join_pairs, wtcomp_obj):    
     N = len(table_pairs)    # N := n-1
     join_sample = []    
@@ -65,8 +62,11 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
 
     # BASE CASE
     t_curr = None
-    w_prime = wtcomp_obj.compute_total_weight()        
-    w_t_curr = full_weight_table(0, wtcomp_obj)   # Since the base case
+    w_prime = None
+    # w_prime = wtcomp_obj.compute_total_weight()
+    # w_t_curr = full_weight_table(0, wtcomp_obj)   # Since the base case
+
+    w_t_curr = wtcomp_obj.compute_total_weight()
     t_curr = get_tuple(t_curr, 0, wtcomp_obj, w_t_curr, base_flag=True)
     join_sample.append(t_curr)    
     
@@ -89,7 +89,6 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
             break
 
     return flag_no_reject, join_sample
-
 
 
 def sampler(num_samples, method, table_pairs, join_pairs):    
@@ -117,7 +116,7 @@ def sampler(num_samples, method, table_pairs, join_pairs):
     
 
 
-
+"""
 # OLD CODE
 
 def old_compute_w_t(table_list, join_columns):
@@ -201,4 +200,4 @@ def old_sampler(table_list, join_columns, method=None):
 
 
     return total_sample
- 
+"""

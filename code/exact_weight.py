@@ -11,7 +11,7 @@ class ExactWeight:
         self.table_pairs = table_pairs
         self.join_pairs = join_pairs
         self.create_dictionary()
-        self.compute_weights(table_pairs, join_pairs, start=True)
+        self.compute_weights(start=True)
 
     def create_dictionary(self):
         """
@@ -32,7 +32,7 @@ class ExactWeight:
             else:
                 self.weights[table2.name] = {col2: {}}
 
-    def compute_weights(self, join_idx=None, table_idx=None, start=False):
+    def compute_weights(self, join_idx=None, start=False):
         """
 
         :param table_list: List of table references.
@@ -45,8 +45,8 @@ class ExactWeight:
         """
         if start:
             # start the computation.
-            table_idx = len(self.table_pairs)-1
-            _, last_table = self.table_pairs[table_idx]
+            join_idx = len(self.table_pairs)-1
+            _, last_table = self.table_pairs[join_idx]
 
             join_idx = len(self.join_pairs) - 1
             current_join = self.join_pairs[join_idx]
@@ -59,14 +59,12 @@ class ExactWeight:
                 self.weights[last_table.name][col2][val] = 1
                 # setting w(t) for all tuples in the final table's join column as 1.
 
-            self.compute_weights(join_idx, table_idx)  # go to one table previous.
+            self.compute_weights(join_idx)  # go to one table previous.
 
-        elif self.weights is not None and table_idx >= 0:
+        elif self.weights is not None and join_idx >= 0:
 
-            current_table = self.table_pairs[table_idx]
-            next_table = self.table_pairs[table_idx+1]
-            current_join = self.join_pairs[join_idx]
-            col1, col2 = current_join
+            current_table, next_table = self.table_pairs[join_idx]
+            col1, col2 = self.join_pairs[join_idx]
 
             assert current_table.has_index(col1), "Missing index."
             assert next_table.has_index(col2), "Missing index."
@@ -82,15 +80,17 @@ class ExactWeight:
                     w_t_new = 0
 
                 self.weights[current_table.name][col1][t_val] = w_t_new
-                self.compute_weights(join_idx-1, table_idx-1)
+                self.compute_weights(join_idx-1)
 
         else:
             return
 
     def compute_tuple_weight(self, tuple_index, join_index):
         table1, _ = self.table_pairs[join_index]
+        # print table1.index['REGIONKEY']
         col1, _ = self.join_pairs[join_index]
         t_val = table1.data[col1][tuple_index]
+        # print table1.name, col1, t_val
         return self.weights[table1.name][col1][t_val]
 
     def compute_relation_weight(self, tuple_index, join_index):
@@ -118,7 +118,6 @@ class ExactWeight:
         :param table:
         :return:
         """
-
         table1, _ = self.table_pairs[0]
         col1, _ = self.join_pairs[0]
 
@@ -126,7 +125,10 @@ class ExactWeight:
             print "Warning, there are more than two columns in this weights table."
 
         total = 0
-        for _, v in self.weights[table1][col1].items():
+        print table1.name, col1
+        print self.weights[table1.name][col1]
+        print self.weights
+        for _, v in self.weights[table1.name][col1].items():
             total += v
         return total
 

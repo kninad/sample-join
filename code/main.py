@@ -42,7 +42,8 @@ class TPCH:
                                                                       "SHIPMODE", "COMMENT"],
                                              indexes=['ORDERKEY', 'PARTKEY'])
 
-        self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"])
+        self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"],
+                                           indexes=['NATIONKEY', 'REGIONKEY'])
 
         self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE",
                                                                   "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY",
@@ -55,10 +56,12 @@ class TPCH:
         self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST",
                                                                          "COMMENT"])
 
-        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"])
+        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"],
+                                           indexes=['REGIONKEY'])
 
         self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY",
-                                                                      "PHONE", "ACCTBAL", "COMMENT"])
+                                                                      "PHONE", "ACCTBAL", "COMMENT"],
+                                             indexes=['NATIONKEY'])
 
         log.info("------------------------")
         log.info("Created TPCH Schema.")
@@ -85,9 +88,8 @@ if __name__=="__main__":
             data = line.split('|')[:-1]
             tpch.tables[table].insert_list(data)
 
-    tables = [(tpch.tables['customer'], tpch.tables['orders']), (tpch.tables['orders'], tpch.tables['lineitem'])]
-    column_pairs = [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY')]
-
+    tables = [(tpch.tables['region'], tpch.tables['nation']), (tpch.tables['nation'], tpch.tables['supplier'])]
+    column_pairs = [('REGIONKEY', 'REGIONKEY'), ('NATIONKEY', 'NATIONKEY')]
 
     from algo1 import *
     num_samp = 2
