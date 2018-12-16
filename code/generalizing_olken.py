@@ -51,10 +51,18 @@ class GeneralizedOlkens:
         RETURNS int - estimated join cardinality
         '''
         W_t = 1
-        join_column = self.join_pairs[0][0]
-        for value in self.table_pairs[0].index[join_column]:
-        # for value in self.table_pairs[0][0].index[join_column]:
-            tuples = self.table_pairs[0].index[join_column][value][0]
-            # tuples = self.table_pairs[0][0].index[join_column][value][0]
-            W_t += (self.compute_tuple_weight(tuples[0], 0) * len(tuples))
+        # join_column = self.join_pairs[0][0]
+        # for value in self.table_pairs[0].index[join_column]:
+        # # for value in self.table_pairs[0][0].index[join_column]:
+        #     tuples = self.table_pairs[0].index[join_column][value][0]
+        #     # tuples = self.table_pairs[0][0].index[join_column][value][0]
+        #     W_t += (self.compute_tuple_weight(tuples[0], 0) * len(tuples))
+        
+        W_t = 1
+        join_column = self.join_pairs[0][0]        
+        num_tuples = len(self.table_pairs[0][0].data)
+        weight_tuple = self.compute_tuple_weight(0, 0)
+
+        W_t = num_tuples * weight_tuple
+
         return W_t
