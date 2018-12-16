@@ -91,7 +91,8 @@ if __name__=="__main__":
 
     from algo1 import *
     num_samp = 2
-    method = 'Extended-Olken'
+    # method = 'Extended-Olken'
+    method = 'Exact-Weight'
     samps = sampler(num_samp, method, tables, column_pairs)
     # result = chain_join(tables, column_pairs, tbl_name=True)
     # print(len(result.data[result.data.keys()[0]]))
