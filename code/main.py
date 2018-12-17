@@ -88,8 +88,10 @@ if __name__ == "__main__":
             data = line.split('|')[:-1]
             tpch.tables[table].insert_list(data)
 
-    tables = [(tpch.tables['region'], tpch.tables['nation'])]
-    column_pairs = [('REGIONKEY', 'REGIONKEY')]
+    tables = [(tpch.tables['region'], tpch.tables['nation']), (tpch.tables['nation'], tpch.tables['supplier']), ]
+    column_pairs = [('REGIONKEY', 'REGIONKEY'), ('NATIONKEY', 'NATIONKEY')]
+    # tables = [(tpch.tables['region'], tpch.tables['nation'])]
+    # column_pairs = [('REGIONKEY', 'REGIONKEY')]
     import numpy as np
     np.random.seed(42)
     from algo1 import *
@@ -102,11 +104,11 @@ if __name__ == "__main__":
     method = 'Exact-Weight'
     samps = sampler(num_samp, method, tables, column_pairs)
     for each in samps:
-        idx1, idx2 = each
+        idx1, idx2, idx3 = each
         t1 = compose_tuple(idx1, tpch.tables['region'])
         t2 = compose_tuple(idx2, tpch.tables['nation'])
-        assert t1['REGIONKEY'] == t2['REGIONKEY'], t1['REGIONKEY'] + "!=" + t2['REGIONKEY']
-        print t1, t2
+        t3 = compose_tuple(idx3, tpch.tables['supplier'])
+        assert verify_tuple([t1, t2, t3], column_pairs), "Verification failed."
 
     # result = chain_join(tables, column_pairs, tbl_name=True)
     # print(len(result.data[result.data.keys()[0]]))

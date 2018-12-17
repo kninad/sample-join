@@ -116,7 +116,18 @@ def compose_tuple(sample, table):
         aTuple.update({col: values[sample]})
     return aTuple
 
-       
+
+def verify_tuple(tupleList, join_columns):
+
+    tuplePairs = zip(tupleList[:-1], tupleList[1:])
+    for idx, eachPair in enumerate(tuplePairs):
+        col1, col2 = join_columns[idx]
+        t1, t2 = eachPair
+        if not t1[col1]==t2[col2]:
+            return False
+
+    return True
+
     
 
 
