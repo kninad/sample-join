@@ -31,13 +31,13 @@ class GeneralizedOlkens:
         RETURNS int - estimated join cardinality
         '''
         # get value of column in input tuple
-        tuple_column = self.join_pairs[tuple_index][0]
-        tuple_table = self.table_pairs[join_index[0]]
+        tuple_column = self.join_pairs[join_index][0]
+        tuple_table = self.table_pairs[join_index][0]
         column_value = tuple_table.data[tuple_column][tuple_index]
 
         # find number of matching tuples in semi-join
-        join_column = self.join_pairs[tuple_index][1]
-        join_table = self.table_pairs[join_index[1]]
+        join_column = self.join_pairs[join_index][1]
+        join_table = self.table_pairs[join_index][1]
         matching_tuples = join_table.index[join_column].get(column_value, [])
 
         # return tuple weight times cardinality of semi-join
