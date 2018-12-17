@@ -19,9 +19,6 @@ class Table:
     def create_table(self):
         for col in self.columns:
             self.data[col] = []
-
-        self.data["tuple_weights"] = [] # w(t) for each tuple.
-
         for index in self.indexes:
             if index in self.data:
                 self.index[index] = {}

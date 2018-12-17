@@ -78,6 +78,7 @@ class ExactWeight:
                     w_t_new = w_t*n_occurences
                 else:
                     w_t_new = 0
+                    # print current_table.name, next_table.name, col1, col2, w_t_new
 
                 self.weights[current_table.name][col1][t_val] = w_t_new
                 self.compute_weights(join_idx-1)
@@ -125,9 +126,6 @@ class ExactWeight:
             print "Warning, there are more than two columns in this weights table."
 
         total = 0
-        print table1.name, col1
-        print self.weights[table1.name][col1]
-        print self.weights
         for _, v in self.weights[table1.name][col1].items():
             total += v
         return total

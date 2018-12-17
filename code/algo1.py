@@ -33,15 +33,13 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
                 return rand_idx
     else:
         accept = False
-        prev_table = wtcomp_obj.table_pairs[join_index][0]
-        prev_colmn = wtcomp_obj.join_pairs[join_index][0]
-        table = wtcomp_obj.table_pairs[join_index][1]
-        colmn = wtcomp_obj.join_pairs[join_index][1]
+        prev_table, table = wtcomp_obj.table_pairs[join_index]
+        prev_colmn, colmn = wtcomp_obj.join_pairs[join_index]
         value = prev_table.data[colmn][t_curr]
         while not accept:
             N = len(table.index[colmn][value])   # its a list
-            rand_idx = np.random.randint(low=0, high=N)
-            
+            tmp = np.random.randint(low=0, high=N)
+            rand_idx = table.index[colmn][value][tmp]
             if join_index == len(wtcomp_obj.table_pairs) - 1:   # LAST TABLE R_n
                 w_rand_idx = 1.0
             else:
@@ -68,7 +66,7 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
 
     w_t_curr = wtcomp_obj.compute_total_weight()
     t_curr = get_tuple(t_curr, 0, wtcomp_obj, w_t_curr, base_flag=True)
-    join_sample.append(t_curr)    
+    join_sample.append(t_curr)
     
     for i in range(N):
         # accept = False
@@ -84,7 +82,7 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
             t_curr = get_tuple(t_curr, curr_join_index, wtcomp_obj, w_t_curr, base_flag=False)
             join_sample.append(t_curr)
         else:
-            print('Rejected at stage: ', i)
+            # print('Rejected at stage: ', i)
             flag_no_reject = False
             break
 
@@ -111,6 +109,12 @@ def sampler(num_samples, method, table_pairs, join_pairs):
     
     return samples_list
 
+
+def compose_tuple(sample, table):
+    aTuple = dict()
+    for col, values in table.data.items():
+        aTuple.update({col: values[sample]})
+    return aTuple
 
        
     

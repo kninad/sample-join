@@ -3,3 +3,4 @@ data/
 *.pyc
 .vscode
 code/log.txt
+code/config.ini
