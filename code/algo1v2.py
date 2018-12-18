@@ -4,7 +4,6 @@ import numpy as np
 
 from generalizing_olken import GeneralizedOlkens
 from extended_olken import ExtendedOlkens
-# from exact_weight import ExactWeight
 from exact_weight2 import ExactWeight
 
 
@@ -14,6 +13,7 @@ TODO:
     2. Print out the weights for semi-joins and tuples and verify if the 
        algorithm is retrieving them correctly
 '''
+
 
 def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
     ''' Function to get a random tuple from the semi-join
@@ -41,7 +41,9 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
             random_toss = np.random.random()
             if random_toss <= accept_prob:
                 accept = True
-                return rand_idx
+                break
+        print "Sampled tuple from R_1."
+        return rand_idx
     else:
         accept = False
         prev_table, table = wtcomp_obj.table_pairs[join_index]
@@ -51,7 +53,7 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
         # should not even come here since then weight_semi_join should be zero
         # since the current tuple matches with nothing in the next table
         # But adding the code just for a sanity check
-        if value not in table.index[prev_colmn]:    
+        if value not in table.index[prev_colmn]:
             print('No value found in second table\'s index')
             return None
         
@@ -75,10 +77,9 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
             random_toss = np.random.random()
             if random_toss <= accept_prob:
                 accept = True
-                print('Successfully got a tuple! idx, join-index', rand_idx, join_index)
+                print('Successfully got a tuple! Join-index: %s'%join_index)
                 return rand_idx
     return
-
 
 
 def get_single_sample(table_pairs, join_pairs, wtcomp_obj):    
@@ -126,7 +127,7 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
             
             # Check if we get a valid tuple from the semi-join
             # Can also check whether w_semijoin is very near to zero 
-            if not t_curr:  
+            if t_curr:
                 join_sample.append(t_curr)
             else:
                 print('Rejected at stage: ', i)
@@ -140,7 +141,6 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
             break
 
     return flag_no_reject, join_sample
-
 
 
 def sampler(num_samples, method, table_pairs, join_pairs):    
@@ -166,6 +166,7 @@ def sampler(num_samples, method, table_pairs, join_pairs):
         wtcomp_obj = ExactWeight(table_pairs, join_pairs)
 
     samples_list = []
+    print "Launching sampler."
     for t in range(num_samples):
         tmp_flag = False
         tmp_samp = None
@@ -173,9 +174,9 @@ def sampler(num_samples, method, table_pairs, join_pairs):
             tmp_flag, tmp_samp = get_single_sample(table_pairs, join_pairs, wtcomp_obj)
         
         samples_list.append(tmp_samp)
+        print "Got %s samples."%len(samples_list)
     
     return samples_list
-
 
 
 def compose_tuple(sample, table):
@@ -183,7 +184,6 @@ def compose_tuple(sample, table):
     for col, values in table.data.items():
         aTuple.update({col: values[sample]})
     return aTuple
-
 
 
 def verify_tuple(tupleList, join_columns):
@@ -197,4 +197,3 @@ def verify_tuple(tupleList, join_columns):
 
     return True
 
-    
