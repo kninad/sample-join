@@ -44,28 +44,28 @@ class TPCH:
     def create_db(self):
         self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY",
                                                                       "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"],
-                                             indexes=['CUSTKEY'])
+                                             indexes=['CUSTKEY', 'NATIONKEY'])
 
         self.tables['lineitem'] = make_table("LINEITEM", column_list=["ORDERKEY", "PARTKEY", "SUPPKEY", "LINENUMBER",
                                                                       "QUANTITY", "EXTENDEDPRICE", "DISCOUNT", "TAX",
                                                                       "RETURNFLAG", "LINESTATUS", "SHIPDATE",
                                                                       "COMMITDATE", "RECEIPTDATE", "SHIPINSTRUCT",
                                                                       "SHIPMODE", "COMMENT"],
-                                             indexes=['ORDERKEY', 'PARTKEY'])
+                                             indexes=['ORDERKEY'])
 
         self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"],
                                            indexes=['NATIONKEY', 'REGIONKEY'])
 
         self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE",
                                                                   "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY",
-                                                                  "COMMENT"], indexes=['CUSTKEY', 'ORDERKEY'])
+                                                                  "COMMENT"],
+                                           indexes=['ORDERKEY', 'CUSTKEY'])
 
-        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE",
-                                                              "CONTAINER", "RETAILPRICE", "COMMENT"],
-                                         indexes=['PARTKEY'])
-
-        self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST",
-                                                                         "COMMENT"])
+        # self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE",
+        #                                                       "CONTAINER", "RETAILPRICE", "COMMENT"])
+        #
+        # self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST",
+        #                                                                  "COMMENT"])
 
         self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"],
                                            indexes=['REGIONKEY'])
@@ -90,6 +90,8 @@ def load_db(db, cfg):
 
     datapath = cfg.get("DATA", "PATH")
     fnames = [x for x in os.listdir(datapath) if x.endswith('.tbl')]
+    fnames = [x for x in fnames if x.split('.')[0] not in ['part', 'partsupp']]
+    print "Skipping PART and PARTSUPP table."
 
     for fname in fnames:
         table = fname.split('.tbl')[0]
@@ -121,6 +123,7 @@ def get_samples(database, query_id, n_samples, method):
             current_table = table_list[idx]
             aTuple = current_table.get_row_dict(t_idx)
             tuple_list.append(aTuple)
+            print aTuple, current_table.name
 
         assert verify_tuple(tuple_list, join_pairs), "Verification failed."
 
@@ -133,9 +136,9 @@ if __name__ == "__main__":
 
     new_db = TPCH(config)
     load_db(new_db, config)
-    num_samp = 10
+    num_samp = 1
 
     # method = 'Generalized-Olken'
     method = 'Exact-Weight'
 
-    get_samples(new_db, 'Q3', n_samples=num_samp, method=method)
+    get_samples(new_db, 'QX', n_samples=num_samp, method=method)
