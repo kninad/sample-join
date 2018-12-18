@@ -3,8 +3,8 @@ from __future__ import division
 import numpy as np
 
 from generalizing_olken import GeneralizedOlkens
+from extended_olken import ExtendedOlkens
 from exact_weight import ExactWeight
-
 
 # def full_weight_table(join_index, wtcomp_obj):
 #     table = wtcomp_obj.table_pairs[join_index][0]
@@ -92,12 +92,13 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
 def sampler(num_samples, method, table_pairs, join_pairs):    
     
     # initialize the weight computation object
-    if method == 'Extended-Olken':
+    if method == 'Generalized-Olken':
         wtcomp_obj = GeneralizedOlkens(table_pairs, join_pairs)
+    elif method == 'Extended-Olken':
+        wtcomp_obj = ExtendedOlkens(table_pairs, join_pairs)
     elif method == 'Exact-Weight':
         wtcomp_obj = ExactWeight(table_pairs, join_pairs)
 
-    # wtcomp_obj = GeneralizedOlkens(table_pairs, join_pairs)
     samples_list = []
     for t in range(num_samples):
         tmp_flag = False
