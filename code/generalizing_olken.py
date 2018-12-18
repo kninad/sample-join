@@ -31,13 +31,13 @@ class GeneralizedOlkens:
         RETURNS int - estimated join cardinality
         '''
         # get value of column in input tuple
-        tuple_column = self.join_pairs[tuple_index][0]
-        tuple_table = self.table_pairs[join_index[0]]
+        tuple_column = self.join_pairs[join_index][0]
+        tuple_table = self.table_pairs[join_index][0]
         column_value = tuple_table.data[tuple_column][tuple_index]
 
         # find number of matching tuples in semi-join
-        join_column = self.join_pairs[tuple_index][1]
-        join_table = self.table_pairs[join_index[1]]
+        join_column = self.join_pairs[join_index][1]
+        join_table = self.table_pairs[join_index][1]
         matching_tuples = join_table.index[join_column].get(column_value, [])
 
         # return tuple weight times cardinality of semi-join
@@ -50,19 +50,7 @@ class GeneralizedOlkens:
 
         RETURNS int - estimated join cardinality
         '''
-        W_t = 1
-        # join_column = self.join_pairs[0][0]
-        # for value in self.table_pairs[0].index[join_column]:
-        # # for value in self.table_pairs[0][0].index[join_column]:
-        #     tuples = self.table_pairs[0].index[join_column][value][0]
-        #     # tuples = self.table_pairs[0][0].index[join_column][value][0]
-        #     W_t += (self.compute_tuple_weight(tuples[0], 0) * len(tuples))
-        
-        W_t = 1
         join_column = self.join_pairs[0][0]        
-        num_tuples = len(self.table_pairs[0][0].data)
+        num_tuples = self.table_pairs[0][0].get_count()
         weight_tuple = self.compute_tuple_weight(0, 0)
-
-        W_t = num_tuples * weight_tuple
-
-        return W_t
+        return num_tuples * weight_tuple

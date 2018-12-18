@@ -18,7 +18,15 @@ class ExtendedOlkens:
 
         RETURNS int - estimated join cardinality
         '''
-        pass
+        W_t = float('inf')
+        for table_index_set in self.permutations[join_index + 1]:
+            table_index = sorted(list(table_index_set))
+            W_t_current = 1
+            for table_index in table_index[:-1]:
+                W_t_current *= self.table_pairs[table_index][0].get_count()
+            W_t_current *= self.table_pairs[-1][1].get_count()
+            W_t = min(W_t, W_t_current)
+        return W_t
 
     def compute_relation_weight(self, tuple_index, join_index):
         '''
@@ -31,6 +39,19 @@ class ExtendedOlkens:
         RETURNS int - estimated join cardinality
         '''
         pass
+        # get value of column in input tuple
+        tuple_column = self.join_pairs[join_index][0]
+        tuple_table = self.table_pairs[join_index][0]
+        column_value = tuple_table.data[tuple_column][tuple_index]
+
+        # find number of matching tuples in semi-join
+        join_column = self.join_pairs[join_index][1]
+        join_table = self.table_pairs[join_index][1]
+        matching_tuples = join_table.index[join_column].get(column_value, [])
+
+        # return tuple weight times cardinality of semi-join
+        tuple_weight = self.compute_tuple_weight(tuple_index, join_index)
+        return tuple_weight * len(matching_tuples)
 
     def compute_total_weight(self):
         '''
@@ -38,27 +59,44 @@ class ExtendedOlkens:
 
         RETURNS int - estimated join cardinality
         '''
-        pass
+        join_column = self.join_pairs[0][0]        
+        num_tuples = self.table_pairs[0][0].get_count()
+        weight_tuple = self.compute_tuple_weight(0, 0)
+        return num_tuples * weight_tuple
 
     def __build_table_permutations(self):
         indices = list(range(len(self.table_pairs) + 1))
         for i in range(len(indices)):
-            to_consider = indices[i:len(indices)-1]
+            to_consider = list(range(i+1, len(self.table_pairs)))
             to_consider = [(j,j+1) for j in to_consider]
-            self.__reursive_selection(to_consider, i)
+            self.__reursive_selection(to_consider, i, len(indices)-1)
         for key in self.permutations:
             l = []
             for value in self.permutations[key]:
                 try:
-                    value = [int(x) for x in value.split('-')]
+                    value = set([int(x) for x in value.split('-')])
                     l.append(value)
                 except:
                     pass # non integer value we want to get rid of anyway
+            to_remove = set()
+            for j in range(len(l)):
+                for k in range(j+1, len(l)):
+                    if j == k:
+                        continue
+                    if l[j].issubset(l[k]) and l[j] != l[k]:
+                        to_remove.add(k)
+                    if l[k].issubset(l[j]) and l[j] != l[k]:
+                        to_remove.add(j)
+            to_remove = sorted(list(to_remove), reverse=True)
+            for m in to_remove:
+                del l[m]
             self.permutations[key] = l
 
-    def __reursive_selection(self, choices, start_index, my_choices=set()):
+    def __reursive_selection(self, choices, start_index, end_index, my_choices=set()):
         # base case, no more choices
         if len(choices) == 0:
+            my_choices.add(start_index)
+            my_choices.add(end_index)
             if start_index not in self.permutations:
                 self.permutations[start_index] = set()
             s = '-'.join([str(n) for n in sorted(list(my_choices))])
@@ -67,13 +105,8 @@ class ExtendedOlkens:
         # select choice 1
         my_choices_1 = deepcopy(my_choices)
         my_choices_1.add(choices[0][0])
-        self.__reursive_selection(choices[1:], start_index, my_choices=my_choices_1)
+        self.__reursive_selection(choices[1:], start_index, end_index, my_choices=my_choices_1)
         # select choice 2
         my_choices_2 = deepcopy(my_choices)
         my_choices_2.add(choices[0][1])
-        self.__reursive_selection(choices[1:], start_index, my_choices=my_choices_2)
-
-tables = [(i, i+1) for i in range(10)]
-cols = deepcopy(tables)
-X = ExtendedOlkens(tables, cols)
-print(X.permutations)
+        self.__reursive_selection(choices[1:], start_index, end_index, my_choices=my_choices_2)
