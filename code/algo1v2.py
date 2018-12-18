@@ -4,16 +4,36 @@ import numpy as np
 
 from generalizing_olken import GeneralizedOlkens
 from extended_olken import ExtendedOlkens
-from exact_weight import ExactWeight
+# from exact_weight import ExactWeight
+from exact_weight2 import ExactWeight
 
+
+'''
+TODO:
+    1. CHECK THE DIVISION CODE SINCE ITS FUCKING PYTHON 2!
+    2. Print out the weights for semi-joins and tuples and verify if the 
+       algorithm is retrieving them correctly
+'''
 
 def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
+    ''' Function to get a random tuple from the semi-join
+    Args:
+        t_curr: the current tuple's index (iteration number) in the table
+        join_index: Iteration number in the pairs list. Useful for referring to tables under consideration
+        wtcomp_obj: An object from weight computation class. Used to retrieve the weights.
+        weight_semi_join: Semi-join weight used in line-7 of Algo-1
+        base_flag: Whether its the base case or not
+    
+    Returns:
+        rand_idx: A random tuple index (iteration number) from the semi-join (Check this)
+    '''
     if base_flag:
-        assert join_index == 0
+        assert join_index == 0, 'For base case, join_index should be zero '
         accept = False
         table = wtcomp_obj.table_pairs[0][0]
         colmn = wtcomp_obj.join_pairs[0][0]
-        N = len(table.data[colmn])
+        # N = len(table.data[colmn])
+        N = table.get_count()   # returns the length of the table
         while not accept:
             rand_idx = np.random.randint(low=0, high=N)
             w_rand_idx = wtcomp_obj.compute_tuple_weight(rand_idx, join_index)
@@ -27,29 +47,55 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
         prev_table, table = wtcomp_obj.table_pairs[join_index]
         prev_colmn, colmn = wtcomp_obj.join_pairs[join_index]
         value = prev_table.data[prev_colmn][t_curr]
-
+        
+        # should not even come here since then weight_semi_join should be zero
+        # since the current tuple matches with nothing in the next table
+        # But adding the code just for a sanity check
+        if value not in table.index[prev_colmn]:    
+            print('No value found in second table\'s index')
+            return None
+        
         while not accept:
-            if value not in table.index[prev_colmn]:
-                print('No value found in second table\'s index')
-                return None
 
-            N = len(table.index[prev_colmn][value])   # its a list
-            tmp = np.random.randint(low=0, high=N)
-            rand_idx = table.index[colmn][value][tmp]
+            N = len(table.index[colmn][value])   # its a list
+            tmp = np.random.randint(low=0, high=N)  # choose a random itration number in the index list
+            rand_idx = table.index[colmn][value][tmp]   # retrieve the random value from the index using tmp
+
+            # ALT: Just use another numpy function to directly sample from a
+            # list with weighted probabilities.
+
             if join_index == len(wtcomp_obj.table_pairs) - 1:   # LAST TABLE R_n
                 w_rand_idx = 1.0
             else:
+                # VERIFY THIS STATMENT AGAIN
+                # IS PROB GOING TO ZERO?
                 w_rand_idx = wtcomp_obj.compute_tuple_weight(rand_idx, join_index + 1)  # should it be join_index + 1
                         
             accept_prob = w_rand_idx * 1.0 / weight_semi_join
             random_toss = np.random.random()
             if random_toss <= accept_prob:
                 accept = True
+                print('Successfully got a tuple! idx, join-index', rand_idx, join_index)
                 return rand_idx
     return
 
 
+
 def get_single_sample(table_pairs, join_pairs, wtcomp_obj):    
+    '''Function to get a single sample from the full-join. So it will be a list
+    of tuple indices from each of the table in the join query.
+    
+    Args:
+        table_pairs: List of the table pairs in the join
+        join_paris: List of which columns to perform the join on
+        wtcomp_obj: Object from a weight computation class
+
+    Returns:
+        flag_no_reject: Boolean flag to indicate whether we successfully got 
+                        a full sample or got rejected midway
+        join_sample: The sample (list) from the join. May or may not be valid
+                     depending on flag_no_reject but returning it anyways.
+    '''
     N = len(table_pairs)    # N := n-1
     join_sample = []    
     flag_no_reject = True
@@ -84,17 +130,32 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
                 join_sample.append(t_curr)
             else:
                 print('Rejected at stage: ', i)
+                print(w_semijoin, w_prime, accept_prob)
                 flag_no_reject = False
                 break
         else:
             print('Rejected at stage: ', i)
+            print(w_semijoin, w_prime, accept_prob)
             flag_no_reject = False
             break
 
     return flag_no_reject, join_sample
 
 
+
 def sampler(num_samples, method, table_pairs, join_pairs):    
+    '''Function to get desired number of samples from the full-join. 
+
+    Args:
+        num_samples: Number of required samples
+        method: The method for the (approximate) weight computation
+        table_pairs: List of the table pairs in the join
+        join_paris: List of which columns to perform the join on        
+
+    Returns:
+        sample_list: A list of lists. Each element is a single (and valid) sample
+                     from the full join result
+    '''
     
     # initialize the weight computation object
     if method == 'Generalized-Olken':
@@ -116,11 +177,13 @@ def sampler(num_samples, method, table_pairs, join_pairs):
     return samples_list
 
 
+
 def compose_tuple(sample, table):
     aTuple = dict()
     for col, values in table.data.items():
         aTuple.update({col: values[sample]})
     return aTuple
+
 
 
 def verify_tuple(tupleList, join_columns):
