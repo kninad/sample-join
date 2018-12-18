@@ -51,6 +51,6 @@ class GeneralizedOlkens:
         RETURNS int - estimated join cardinality
         '''
         join_column = self.join_pairs[0][0]        
-        num_tuples = len(self.table_pairs[0][0].data[join_column])
+        num_tuples = self.table_pairs[0][0].get_count()
         weight_tuple = self.compute_tuple_weight(0, 0)
         return num_tuples * weight_tuple
