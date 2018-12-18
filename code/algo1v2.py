@@ -6,15 +6,6 @@ from generalizing_olken import GeneralizedOlkens
 from extended_olken import ExtendedOlkens
 from exact_weight import ExactWeight
 
-# def full_weight_table(join_index, wtcomp_obj):
-#     table = wtcomp_obj.table_pairs[join_index][0]
-#     colmn = wtcomp_obj.join_pairs[join_index][0]   # join column
-#     total_len = len(table.data[colmn])
-#     weight_sum = 0
-#     for i in range(total_len):
-#         weight_sum += wtcomp_obj.compute_tuple_weight(i, join_index)
-#     return weight_sum
-
 
 def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
     if base_flag:
@@ -73,8 +64,7 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
     t_curr = get_tuple(t_curr, 0, wtcomp_obj, w_t_curr, base_flag=True)
     join_sample.append(t_curr)
     
-    for i in range(N):
-        
+    for i in range(N):        
         curr_join_index = i
         # w_prime = w_t_curr        # WRONG INIT # CLARIFIED ON PIAZZA
 
@@ -93,11 +83,11 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
             if not t_curr:  
                 join_sample.append(t_curr)
             else:
-                # print('Rejected at stage: ', i)
+                print('Rejected at stage: ', i)
                 flag_no_reject = False
                 break
         else:
-            # print('Rejected at stage: ', i)
+            print('Rejected at stage: ', i)
             flag_no_reject = False
             break
 
