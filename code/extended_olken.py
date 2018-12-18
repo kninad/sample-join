@@ -18,6 +18,8 @@ class ExtendedOlkens:
 
         RETURNS int - estimated join cardinality
         '''
+        if join_index == len(self.join_pairs) - 1:
+            return self.table_pairs[-1][1].get_count()
         W_t = float('inf')
         for table_index_set in self.permutations[join_index + 1]:
             table_index = sorted(list(table_index_set))
@@ -50,7 +52,7 @@ class ExtendedOlkens:
         matching_tuples = join_table.index[join_column].get(column_value, [])
 
         # return tuple weight times cardinality of semi-join
-        tuple_weight = self.compute_tuple_weight(tuple_index, join_index)
+        tuple_weight = self.compute_tuple_weight(tuple_index+1, join_index+1)
         return tuple_weight * len(matching_tuples)
 
     def compute_total_weight(self):
@@ -58,8 +60,7 @@ class ExtendedOlkens:
         Compute the weight of the full join
 
         RETURNS int - estimated join cardinality
-        '''
-        join_column = self.join_pairs[0][0]        
+        '''      
         num_tuples = self.table_pairs[0][0].get_count()
         weight_tuple = self.compute_tuple_weight(0, 0)
         return num_tuples * weight_tuple
