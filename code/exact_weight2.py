@@ -13,9 +13,6 @@ class ExactWeight:
         self.create_dictionary()
         self.compute_weights(start=True)
 
-        for aTable in self.weights:
-                print "Weights available for: %s."%(aTable)
-
     def create_dictionary(self):
         """
         Creates the place holder dictionary for the weights.
@@ -54,7 +51,6 @@ class ExactWeight:
 
             current_table, next_table = self.table_pairs[join_idx]
             col1, col2 = self.join_pairs[join_idx]
-            print "Joining %s.%s and %s.%s"%(current_table.name, col1, next_table.name, col2)
             assert current_table.has_index(col1), "Missing index."
             assert next_table.has_index(col2), "Missing index."
 

@@ -1,9 +1,21 @@
+from algo1v2 import *
 import ConfigParser
 import os, logging
 import argparse
 from join import *
+import numpy as np
+# np.random.seed(42)
 
 log = logging.getLogger(__name__)
+
+
+QUERIES = {'Q3': {'TABLE_LIST': ['customer', 'orders', 'lineitem'],
+                  'JOIN_PAIRS': [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY')]},
+           'QX': {'TABLE_LIST': ['nation', 'supplier', 'customer', 'orders', 'lineitem'],
+                  'JOIN_PAIRS': [('NATIONKEY','NATIONKEY'), ('NATIONKEY', 'NATIONKEY'), ('CUSTKEY', 'CUSTKEY'),
+                                 ('ORDERKEY','ORDERKEY')]},
+           'Test':{'TABLE_LIST': ['region', 'nation', 'supplier'],
+                  'JOIN_PAIRS': [('REGIONKEY', 'REGIONKEY'), ('NATIONKEY', 'NATIONKEY')]}}
 
 
 def read_config(configpath='config.ini'):
@@ -22,13 +34,14 @@ def getargs():
 
 class TPCH:
 
-    def __init__(self):
+    def __init__(self, config):
         log.info("Initializing TPCH schema.")
+        self.cfg = config
+        self.tables = dict()
         self.create_db()
+        # self.load_db()
 
     def create_db(self):
-        self.tables = {}
-
         self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY",
                                                                       "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"],
                                              indexes=['CUSTKEY'])
@@ -43,18 +56,18 @@ class TPCH:
         self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"],
                                            indexes=['NATIONKEY', 'REGIONKEY'])
 
-        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY", "ORDERSTATUS", "TOTALPRICE",
+        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE",
                                                                   "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY",
                                                                   "COMMENT"], indexes=['CUSTKEY', 'ORDERKEY'])
 
-        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR", "BRAND", "TYPE", "SIZE",
+        self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE",
                                                               "CONTAINER", "RETAILPRICE", "COMMENT"],
                                          indexes=['PARTKEY'])
 
-        self.tables['partsupp'] = make_table("PARTSUPPLY", column_list=["PARTKEY", "SUPPKEY", "AVAILQTY", "SUPPLYCOST",
-                                                                        "COMMENT"])
+        self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST",
+                                                                         "COMMENT"])
 
-        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY", "NAME", "COMMENT"],
+        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"],
                                            indexes=['REGIONKEY'])
 
         self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY",
@@ -66,17 +79,16 @@ class TPCH:
         log.info("------------------------")
 
 
-if __name__ == "__main__":
+def load_db(db, cfg):
+    """
+    Loads the database.
+    :param config:
+    :return:
+    """
 
-    args = getargs()
-    logging.basicConfig(filename=args.log, level=logging.INFO)
-    config = read_config(args.config)
+    log.info("Accessing tables stored in: %s" % cfg.get("DATA", "PATH"))
 
-    tpch = TPCH()
-
-    log.info("Accessing tables stored in: %s" % config.get("DATA", "PATH"))
-
-    datapath = config.get("DATA", "PATH")
+    datapath = cfg.get("DATA", "PATH")
     fnames = [x for x in os.listdir(datapath) if x.endswith('.tbl')]
 
     for fname in fnames:
@@ -84,35 +96,46 @@ if __name__ == "__main__":
         f = open('%s/%s' % (datapath, fname), 'r')
         for line in f:
             data = line.split('|')[:-1]
-            tpch.tables[table].insert_list(data)
+            db.tables[table].insert_list(data)
 
-    tables = [(tpch.tables['customer'], tpch.tables['orders']), (tpch.tables['orders'], tpch.tables['lineitem'])]
-    column_pairs = [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY')]
 
-    # tables = [(tpch.tables['region'], tpch.tables['nation']), (tpch.tables['nation'], tpch.tables['supplier']), ]
-    # column_pairs = [('REGIONKEY', 'REGIONKEY'), ('NATIONKEY', 'NATIONKEY')]
-    # tables = [(tpch.tables['region'], tpch.tables['nation'])]
-    # column_pairs = [('REGIONKEY', 'REGIONKEY')]
-    import numpy as np
+def get_samples(database, query_id, n_samples, method):
+    assert query_id in QUERIES, "Invalid query id."
+    print "Sampling for: %s" % query_id
+    table_list = QUERIES[query_id]['TABLE_LIST']
+    join_pairs = QUERIES[query_id]['JOIN_PAIRS']
 
-    np.random.seed(42)
-    from algo1v2 import *
+    table_list = [database.tables[table_name] for table_name in table_list]
 
+    table_pairs = zip(table_list[:-1], table_list[1:])
+
+    for table_pair, col_pair in zip(table_pairs, join_pairs):
+        col1, col2 = col_pair
+        table1, table2 = table_pair
+        print "Joining %s.%s and %s.%s"%(table1.name, col1, table2.name, col2)
+    samps = sampler(n_samples, method, table_pairs, join_pairs)
+
+    for aSample in samps:
+        tuple_list = []
+        for idx, t_idx in enumerate(aSample):
+            current_table = table_list[idx]
+            aTuple = current_table.get_row_dict(t_idx)
+            tuple_list.append(aTuple)
+
+        assert verify_tuple(tuple_list, join_pairs), "Verification failed."
+
+
+if __name__ == "__main__":
+
+    args = getargs()
+    logging.basicConfig(filename=args.log, level=logging.INFO)
+    config = read_config(args.config)
+
+    new_db = TPCH(config)
+    load_db(new_db, config)
     num_samp = 10
 
-    # print compose_tuple(0, tpch.tables['region'])
-    # print compose_tuple(4, tpch.tables['nation'])
+    # method = 'Generalized-Olken'
+    method = 'Exact-Weight'
 
-    method = 'Generalized-Olken'
-    # method = 'Exact-Weight'
-    samps = sampler(num_samp, method, tables, column_pairs)
-    for each in samps:
-        idx1, idx2, idx3 = each
-        t1 = compose_tuple(idx1, tpch.tables['customer'])
-        t2 = compose_tuple(idx2, tpch.tables['orders'])
-        t3 = compose_tuple(idx3, tpch.tables['lineitem'])
-        assert verify_tuple([t1, t2, t3], column_pairs), "Verification failed."
-
-    print "YAY!"
-    # result = chain_join(tables, column_pairs, tbl_name=True)
-    # print(len(result.data[result.data.keys()[0]]))
+    get_samples(new_db, 'Q3', n_samples=num_samp, method=method)

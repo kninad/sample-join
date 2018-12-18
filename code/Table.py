@@ -74,6 +74,10 @@ class Table:
     def get_row(self, idx): # TODO: non-immutable object
         return [self.data[c][idx] for c in self.columns]
 
+    def get_row_dict(self, idx): # TODO: non-immutable object
+        aRow = [(c, self.data[c][idx]) for c in self.columns]
+        return dict(aRow)
+
 
 def make_table(name, column_list=[], indexes=[]):
     log.info("Creating table: %s"%name)
