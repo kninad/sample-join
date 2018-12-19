@@ -139,10 +139,13 @@ if __name__ == "__main__":
 
     pickle_filename = os.path.join(config.get("DATA", "PATH"), 'tpch_1.0.pkl')
     if os.path.isfile(pickle_filename):
+        print('Loading database from disk')
         new_db = pickle.load(open(pickle_filename, 'rb'))
     else:
+        print('Building database')
         new_db = TPCH(config)
         load_db(new_db, config)
+        print('Saving database to disk')
         pickle.dump(new_db, open(pickle_filename, 'wb'))
 
     num_samp = config.getint("EXPT", "N_SAMPLES")
