@@ -1,4 +1,4 @@
-data/
+*.tbl
 .DS_Store
 *.pyc
 .vscode
