@@ -4,6 +4,7 @@ import os, logging
 import argparse
 from Table import make_table
 import numpy as np
+import pickle
 np.random.seed(42)
 
 import timeit
@@ -42,7 +43,6 @@ class TPCH:
         self.cfg = config
         self.tables = dict()
         self.create_db()
-        # self.load_db()
 
     def create_db(self):
         self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY",
@@ -137,10 +137,15 @@ if __name__ == "__main__":
     logging.basicConfig(filename=args.log, level=logging.INFO)
     config = read_config(args.config)
 
-    new_db = TPCH(config)
-    load_db(new_db, config)
-    num_samp = config.getint("EXPT", "N_SAMPLES")
+    pickle_filename = os.path.join(config.get("DATA", "PATH"), 'tpch_1.0.pkl')
+    if os.path.isfile(pickle_filename):
+        new_db = pickle.load(open(pickle_filename, 'rb'))
+    else:
+        new_db = TPCH(config)
+        load_db(new_db, config)
+        pickle.dump(new_db, open(pickle_filename, 'wb'))
 
+    num_samp = config.getint("EXPT", "N_SAMPLES")
     n_trials = config.getint("EXPT", "N_TRIALS")
     method = config.get("EXPT", "METHOD")
     query_id = config.get("EXPT", "QUERY")
