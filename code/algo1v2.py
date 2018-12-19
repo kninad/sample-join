@@ -42,7 +42,7 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
             if random_toss <= accept_prob:
                 accept = True
                 break
-        print "Sampled tuple from R_1."
+        # print "Sampled tuple from R_1."
         return rand_idx
     else:
         accept = False
@@ -54,7 +54,7 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
         # since the current tuple matches with nothing in the next table
         # But adding the code just for a sanity check
         if value not in table.index[prev_colmn]:
-            print('No value found in second table\'s index')
+            # print('No value found in second table\'s index')
             return None
         
         while not accept:
@@ -77,7 +77,7 @@ def get_tuple(t_curr, join_index, wtcomp_obj, weight_semi_join, base_flag):
             random_toss = np.random.random()
             if random_toss <= accept_prob:
                 accept = True
-                print('Successfully got a tuple! Join-index: %s'%join_index)
+                # print('Successfully got a tuple! Join-index: %s'%join_index)
                 return rand_idx
     return
 
@@ -130,13 +130,13 @@ def get_single_sample(table_pairs, join_pairs, wtcomp_obj):
             if t_curr:
                 join_sample.append(t_curr)
             else:
-                print('Rejected at stage: ', i)
-                print(w_semijoin, w_prime, accept_prob)
+                # print('Rejected at stage: ', i)
+                # print(w_semijoin, w_prime, accept_prob)
                 flag_no_reject = False
                 break
         else:
-            print('Rejected at stage: ', i)
-            print(w_semijoin, w_prime, accept_prob)
+            # print('Rejected at stage: ', i)
+            # print(w_semijoin, w_prime, accept_prob)
             flag_no_reject = False
             break
 
@@ -166,7 +166,7 @@ def sampler(num_samples, method, table_pairs, join_pairs):
         wtcomp_obj = ExactWeight(table_pairs, join_pairs)
 
     samples_list = []
-    print "Launching sampler."
+    # print "Launching sampler."
     for t in range(num_samples):
         tmp_flag = False
         tmp_samp = None
@@ -174,7 +174,7 @@ def sampler(num_samples, method, table_pairs, join_pairs):
             tmp_flag, tmp_samp = get_single_sample(table_pairs, join_pairs, wtcomp_obj)
         
         samples_list.append(tmp_samp)
-        print "Got %s samples."%len(samples_list)
+        # print "Got %s samples."%len(samples_list)
     
     return samples_list
 

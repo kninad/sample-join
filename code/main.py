@@ -2,9 +2,11 @@ from algo1v2 import *
 import ConfigParser
 import os, logging
 import argparse
-from join import *
+from Table import make_table
 import numpy as np
-# np.random.seed(42)
+np.random.seed(42)
+
+import timeit
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ def getargs():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="config.ini", help="Path to config.ini file.")
     parser.add_argument("--log", default="log.txt", help="Path to log file.")
+    parser.add_argument("--expt", default="Test", help="Expt name.")
     args = parser.parse_args()
     return args
 
@@ -103,7 +106,7 @@ def load_db(db, cfg):
 
 def get_samples(database, query_id, n_samples, method):
     assert query_id in QUERIES, "Invalid query id."
-    print "Sampling for: %s" % query_id
+    # print "Sampling for: %s" % query_id
     table_list = QUERIES[query_id]['TABLE_LIST']
     join_pairs = QUERIES[query_id]['JOIN_PAIRS']
 
@@ -114,7 +117,7 @@ def get_samples(database, query_id, n_samples, method):
     for table_pair, col_pair in zip(table_pairs, join_pairs):
         col1, col2 = col_pair
         table1, table2 = table_pair
-        print "Joining %s.%s and %s.%s"%(table1.name, col1, table2.name, col2)
+        # print "Joining %s.%s and %s.%s"%(table1.name, col1, table2.name, col2)
     samps = sampler(n_samples, method, table_pairs, join_pairs)
 
     for aSample in samps:
@@ -123,7 +126,7 @@ def get_samples(database, query_id, n_samples, method):
             current_table = table_list[idx]
             aTuple = current_table.get_row_dict(t_idx)
             tuple_list.append(aTuple)
-            print aTuple, current_table.name
+            # print aTuple, current_table.name
 
         assert verify_tuple(tuple_list, join_pairs), "Verification failed."
 
@@ -136,9 +139,21 @@ if __name__ == "__main__":
 
     new_db = TPCH(config)
     load_db(new_db, config)
-    num_samp = 1
+    num_samp = config.getint("EXPT", "N_SAMPLES")
 
-    # method = 'Generalized-Olken'
-    method = 'Exact-Weight'
+    n_trials = config.getint("EXPT", "N_TRIALS")
+    method = config.get("EXPT", "METHOD")
+    query_id = config.get("EXPT", "QUERY")
 
-    get_samples(new_db, 'QX', n_samples=num_samp, method=method)
+    print "QUERY %s"%query_id
+    print "Getting %s samples using %s method. "%(num_samp, method)
+    print "Number of trials: %s"%(n_trials)
+
+    elapsed_time = timeit.timeit("get_samples(new_db, query_id, n_samples=num_samp, method=method)",
+                                 number=n_trials,
+                                 setup="from __main__ import get_samples, new_db, query_id, num_samp, method")
+
+    average_time = elapsed_time/n_trials
+
+    print "Total Time taken: %.3f seconds. "%(elapsed_time)
+    print "Average time to get %s samples: %.3f seconds."%(num_samp, average_time)

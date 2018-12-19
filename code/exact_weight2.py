@@ -42,7 +42,7 @@ class ExactWeight:
             join_idx = len(self.table_pairs)-1
             _, last_table = self.table_pairs[join_idx]
 
-            print "R_n = %s. Weights = 1 for all tuples " % last_table.name
+            # print "R_n = %s. Weights = 1 for all tuples " % last_table.name
 
             self.weights[last_table.name] = [1]*last_table.get_count()
             self.compute_weights(join_idx)  # go to one table previous.
