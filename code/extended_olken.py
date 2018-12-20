@@ -33,7 +33,6 @@ class ExtendedOlkens:
 
         RETURNS int - estimated join cardinality
         '''
-        pass
         # get value of column in input tuple
         tuple_column = self.join_pairs[join_index][0]
         tuple_table = self.table_pairs[join_index][0]
