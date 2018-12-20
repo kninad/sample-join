@@ -13,6 +13,10 @@ class ExactWeight:
         self.create_dictionary()
         self.compute_weights(start=True)
 
+        table1 = table_pairs[0][0]
+        print sum(self.weights[table1.name])
+        exit(0)
+
     def create_dictionary(self):
         """
         Creates the place holder dictionary for the weights.

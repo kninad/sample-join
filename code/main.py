@@ -1,11 +1,10 @@
-from algo1v2 import *
+from algo1 import *
 import ConfigParser
 import os, logging
 import argparse
-from Table import make_table
+import TPCH
 import numpy as np
 np.random.seed(42)
-
 import timeit
 
 log = logging.getLogger(__name__)
@@ -35,53 +34,6 @@ def getargs():
     return args
 
 
-class TPCH:
-
-    def __init__(self, config):
-        log.info("Initializing TPCH schema.")
-        self.cfg = config
-        self.tables = dict()
-        self.create_db()
-        # self.load_db()
-
-    def create_db(self):
-        self.tables['customer'] = make_table("CUSTOMER", column_list=["CUSTKEY", "NAME", "ADDRESS", "NATIONKEY",
-                                                                      "PHONE", "ACCTBAL", "MKTSEGMENT", "COMMENT"],
-                                             indexes=['CUSTKEY', 'NATIONKEY'])
-
-        self.tables['lineitem'] = make_table("LINEITEM", column_list=["ORDERKEY", "PARTKEY", "SUPPKEY", "LINENUMBER",
-                                                                      "QUANTITY", "EXTENDEDPRICE", "DISCOUNT", "TAX",
-                                                                      "RETURNFLAG", "LINESTATUS", "SHIPDATE",
-                                                                      "COMMITDATE", "RECEIPTDATE", "SHIPINSTRUCT",
-                                                                      "SHIPMODE", "COMMENT"],
-                                             indexes=['ORDERKEY'])
-
-        self.tables['nation'] = make_table("NATION", column_list=["NATIONKEY", "NAME", "REGIONKEY", "COMMENT"],
-                                           indexes=['NATIONKEY', 'REGIONKEY'])
-
-        self.tables['orders'] = make_table("ORDERS", column_list=["ORDERKEY", "CUSTKEY","ORDERSTATUS", "TOTALPRICE",
-                                                                  "ORDERDATE", "ORDERPRIORITY", "CLERK", "SHIPPRIORITY",
-                                                                  "COMMENT"],
-                                           indexes=['ORDERKEY', 'CUSTKEY'])
-
-        # self.tables['part'] = make_table("PART", column_list=["PARTKEY", "NAME", "MFGR","BRAND", "TYPE", "SIZE",
-        #                                                       "CONTAINER", "RETAILPRICE", "COMMENT"])
-        #
-        # self.tables['partsupp'] = make_table("PARTSUPPLY", column_list= ["PARTKEY","SUPPKEY","AVAILQTY", "SUPPLYCOST",
-        #                                                                  "COMMENT"])
-
-        self.tables['region'] = make_table("REGION", column_list=["REGIONKEY",  "NAME","COMMENT"],
-                                           indexes=['REGIONKEY'])
-
-        self.tables['supplier'] = make_table("SUPPLIER", column_list=["SUPPKEY", "NAME", "ADDRESS", "NATIONKEY",
-                                                                      "PHONE", "ACCTBAL", "COMMENT"],
-                                             indexes=['NATIONKEY'])
-
-        log.info("------------------------")
-        log.info("Created TPCH Schema.")
-        log.info("------------------------")
-
-
 def load_db(db, cfg):
     """
     Loads the database.
@@ -95,7 +47,6 @@ def load_db(db, cfg):
     fnames = [x for x in os.listdir(datapath) if x.endswith('.tbl')]
     fnames = [x for x in fnames if x.split('.')[0] not in ['part', 'partsupp']]
     print "Skipping PART and PARTSUPP table."
-
     for fname in fnames:
         table = fname.split('.tbl')[0]
         f = open('%s/%s' % (datapath, fname), 'r')
@@ -118,6 +69,7 @@ def get_samples(database, query_id, n_samples, method):
         col1, col2 = col_pair
         table1, table2 = table_pair
         # print "Joining %s.%s and %s.%s"%(table1.name, col1, table2.name, col2)
+
     samps = sampler(n_samples, method, table_pairs, join_pairs)
 
     for aSample in samps:
@@ -137,7 +89,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=args.log, level=logging.INFO)
     config = read_config(args.config)
 
-    new_db = TPCH(config)
+    new_db = TPCH.get_schema(config)
     load_db(new_db, config)
     num_samp = config.getint("EXPT", "N_SAMPLES")
 

@@ -27,8 +27,9 @@ class Table:
         if len(data) != len(self.columns):
             raise ValueError('Data length does not match column length')
         for i in range(len(self.columns)):
-            self.data[self.columns[i]].append(data[i])
-            self.insert_into_index(self.columns[i], data[i])
+            if self.columns[i] in self.indexes:
+                self.data[self.columns[i]].append(data[i])
+                self.insert_into_index(self.columns[i], data[i])
 
     def insert_into_index(self, column, value):
         if column in self.index:
@@ -69,13 +70,13 @@ class Table:
                 yield idx
 
     def get_count(self):
-        return len(self.data[self.columns[0]])
+        return len(self.data[self.indexes[0]])
 
     def get_row(self, idx): # TODO: non-immutable object
-        return [self.data[c][idx] for c in self.columns]
+        return [self.data[c][idx] for c in self.indexes]
 
     def get_row_dict(self, idx): # TODO: non-immutable object
-        aRow = [(c, self.data[c][idx]) for c in self.columns]
+        aRow = [(c, self.data[c][idx]) for c in self.indexes]
         return dict(aRow)
 
 
