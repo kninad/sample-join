@@ -176,4 +176,4 @@ if __name__ == "__main__":
     log.info("Average time to get %s samples: %.3f  +/- %.3f seconds." % (num_samp, avg_time, std_dev))
 
     log.info("Average Wall Clock Time: %.3f seconds."%(avg_wall_clock_time))
-    
+

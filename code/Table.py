@@ -51,11 +51,18 @@ class Table:
     def get_name(self):
         return self.name
 
-    def get_columns(self, tbl_name=False):
-        if not tbl_name or self.name is None:
-            return self.columns
+    def get_columns(self, tbl_name=False, full_join=False):
+        if full_join:
+            if not tbl_name or self.name is None:
+                return self.indexes
+            else:
+                return ['%s.%s' % (self.get_name(), c) for c in self.indexes]
         else:
-            return ['%s.%s' % (self.get_name(), c) for c in self.columns]
+            if not tbl_name or self.name is None:
+                return self.columns
+            else:
+                return ['%s.%s' % (self.get_name(), c) for c in self.columns]
+
 
     def has_index(self, column):
         return column in self.index

@@ -1,4 +1,7 @@
 from Table import make_table
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def two_table_simple_join(t1, t2, c1, c2, tbl_name=True):
@@ -35,9 +38,10 @@ def two_table_simple_join(t1, t2, c1, c2, tbl_name=True):
         join_function = join_without_index
 
     # compute output columns and index columns, creating an output table
-    out_columns = t1.get_columns(tbl_name) + t2.get_columns(tbl_name)
-    index_columns = [c for c in t1.get_columns(tbl_name) if t1.has_index(c)] + \
-                    [c for c in t2.get_columns(tbl_name) if t2.has_index(c)]
+    out_columns = t1.get_columns(tbl_name, full_join=True) + t2.get_columns(tbl_name, full_join=True)
+    index_columns = [c for c in t1.get_columns(tbl_name, full_join=True) if t1.has_index(c.split('.')[-1])] + \
+                    [c for c in t2.get_columns(tbl_name, full_join=True) if t2.has_index(c.split('.')[-1])]
+
     result = make_table(None, column_list=out_columns, indexes=index_columns)
 
     # join rows and return result table
@@ -49,10 +53,13 @@ def two_table_simple_join(t1, t2, c1, c2, tbl_name=True):
 def chain_join(tables, column_pairs, tbl_name=True):
     result = two_table_simple_join(tables[0], tables[1], column_pairs[0][0], 
                                    column_pairs[0][1], tbl_name=tbl_name)
+    log.info("Join: 1.")
     for i in range(2, len(tables)):
         t1, t2 = result, tables[i]
         c1, c2 = column_pairs[i-1]
         if tbl_name:
             c1 = '%s.%s' % (tables[i-1].get_name(), c1)
         result = two_table_simple_join(t1, t2, c1, c2, tbl_name=tbl_name)
+        log.info("Join: %s."%i)
+
     return result
