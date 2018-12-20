@@ -1,30 +1,18 @@
 from torch.utils.data import Dataset, DataLoader
 import torch
-import ConfigParser
 from argparse import ArgumentParser
 import numpy as np
+import time
+import os, logging
 import TPCH
-import os
-
 from algo1 import get_single_sample, verify_tuple
 
 from generalizing_olken import GeneralizedOlkens
 from extended_olken import ExtendedOlkens
 from exact_weight import ExactWeight
+from utils import *
 
-QUERIES = {'Q3': {'TABLE_LIST': ['customer', 'orders', 'lineitem'],
-                  'JOIN_PAIRS': [('CUSTKEY', 'CUSTKEY'), ('ORDERKEY', 'ORDERKEY')]},
-           'QX': {'TABLE_LIST': ['nation', 'supplier', 'customer', 'orders', 'lineitem'],
-                  'JOIN_PAIRS': [('NATIONKEY','NATIONKEY'), ('NATIONKEY', 'NATIONKEY'), ('CUSTKEY', 'CUSTKEY'),
-                                 ('ORDERKEY','ORDERKEY')]},
-           'Test':{'TABLE_LIST': ['region', 'nation', 'supplier'],
-                  'JOIN_PAIRS': [('REGIONKEY', 'REGIONKEY'), ('NATIONKEY', 'NATIONKEY')]}}
-
-
-def read_config(configpath='config.ini'):
-    config = ConfigParser.RawConfigParser()
-    config.read(configpath)
-    return config
+log = logging.getLogger(__name__)
 
 
 def getargs():
@@ -45,7 +33,7 @@ def load_db(db, cfg):
     datapath = cfg.get("DATA", "PATH")
     fnames = [x for x in os.listdir(datapath) if x.endswith('.tbl')]
     fnames = [x for x in fnames if x.split('.')[0] not in ['part', 'partsupp']]
-    print "Skipping PART and PARTSUPP table."
+    log.info("Skipping PART and PARTSUPP table.")
     for fname in fnames:
         table = fname.split('.tbl')[0]
         f = open('%s/%s' % (datapath, fname), 'r')
@@ -85,21 +73,23 @@ class ParallelSampler(Dataset):
         :param idx: index of sample clip in dataset
         :return: Gets the required sample, and ensures only 9 frames from the clip are returned.
         """
+        start = time.time()
         tmp_flag = False
         tmp_samp = None
         while not tmp_flag:
             tmp_flag, tmp_samp = get_single_sample(self.table_pairs, self.join_pairs, self.wtcomp_obj)
-        tuple_list = []
-
-        for idx, t_idx in enumerate(tmp_samp):
-            current_table = self.table_list[idx]
-            aTuple = current_table.get_row_dict(t_idx)
-            tuple_list.append(aTuple)
-            # print aTuple, current_table.name
-
-        assert verify_tuple(tuple_list, self.join_pairs), "Verification failed."
-
-        return True
+        stop = time.time()
+        elapsed_time = stop - start
+        return elapsed_time
+        # tuple_list = []
+        # for idx, t_idx in enumerate(tmp_samp):
+        #     current_table = self.table_list[idx]
+        #     aTuple = current_table.get_row_dict(t_idx)
+        #     tuple_list.append(aTuple)
+        #     # print aTuple, current_table.name
+        #
+        # assert verify_tuple(tuple_list, self.join_pairs), "Verification failed."
+        # return True
 
 
 def data_generator(config, method, table_list, table_pairs, join_pairs):
@@ -115,16 +105,6 @@ def data_generator(config, method, table_list, table_pairs, join_pairs):
     return sample_generator
 
 
-def get_params(config):
-    num_samp = config.getint("EXPT", "N_SAMPLES")
-
-    n_trials = config.getint("EXPT", "N_TRIALS")
-    method = config.get("EXPT", "METHOD")
-    query_id = config.get("EXPT", "QUERY")
-
-    return query_id, num_samp, method, n_trials
-
-
 def get_samples(database, config):
     query_id, num_samp, method, n_trials = get_params(config)
     assert query_id in QUERIES, "Invalid query id."
@@ -138,10 +118,12 @@ def get_samples(database, config):
 
     samps = data_generator(config, method, table_list, table_pairs, join_pairs)
 
-    for aSample in samps:
-        pass
+    total_time = 0
 
-    print "Trial complete."
+    for time_per_sample in samps:
+        total_time += time_per_sample.sum()
+
+    return total_time
 
 
 if __name__ == "__main__":
@@ -150,18 +132,20 @@ if __name__ == "__main__":
 
     new_db = TPCH.get_schema(config)
     load_db(new_db, config)
-
+    logging.basicConfig(filename=args.log, level=logging.INFO)
     query_id, num_samp, method, n_trials = get_params(config)
-    print "QUERY %s" % query_id
-    print "Getting %s samples using %s method. " % (num_samp, method)
-    print "Number of trials: %s" % (n_trials)
+    log.info("QUERY %s" % query_id)
+    log.info("Getting %s samples using %s method. " % (num_samp, method))
+    log.info("Number of trials: %s" % (n_trials))
 
-    import timeit
+    time_per_trial = []
+    for i in range(n_trials):
+        elapsed_time = get_samples(new_db, config)
+        time_per_trial.append(elapsed_time)
+        log.info("Trial %s: %.3f seconds. "%(i, elapsed_time))
 
-    elapsed_time = timeit.timeit("get_samples(new_db, config)",
-                                 number=n_trials,
-                                 setup="from __main__ import get_samples, new_db, config")
-    average_time = elapsed_time / n_trials
-
-    print "Total Time taken: %.3f seconds. " % (elapsed_time)
-    print "Average time to get %s samples: %.3f seconds." % (num_samp, average_time)
+    total_time = np.sum(time_per_trial)
+    avg_time = np.mean(time_per_trial)
+    std_dev = np.std(time_per_trial)
+    log.info("Total Time taken: %.3f seconds. " % (total_time))
+    log.info("Average time to get %s samples: %.3f  +/- %.3f seconds." % (num_samp, avg_time, std_dev))
