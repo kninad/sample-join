@@ -4,3 +4,4 @@ data/
 .vscode
 code/log.txt
 *.tbl
+logs/
