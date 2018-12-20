@@ -1,10 +1,9 @@
-
 from __future__ import division
 import numpy as np
 
 from generalizing_olken import GeneralizedOlkens
 from extended_olken import ExtendedOlkens
-from exact_weight2 import ExactWeight
+from exact_weight import ExactWeight
 
 
 '''

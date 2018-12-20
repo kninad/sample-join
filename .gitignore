@@ -1,6 +1,5 @@
-*.tbl
+data/
 .DS_Store
 *.pyc
 .vscode
 code/log.txt
-*.pkl
