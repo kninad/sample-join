@@ -19,7 +19,7 @@ class ExtendedOlkens:
         RETURNS int - estimated join cardinality
         '''
         try:
-            return self.permutations[join_index + 1]:
+            return self.permutations[join_index + 1]
         except: # final table requested
             return self.table_pairs[-1][1].get_count()
 
