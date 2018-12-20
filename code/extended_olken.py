@@ -19,18 +19,9 @@ class ExtendedOlkens:
         RETURNS int - estimated join cardinality
         '''
         try:
-            W_t = float('inf')
-            for table_index_set in self.permutations[join_index + 1]:
-                table_index = sorted(list(table_index_set))
-                W_t_current = 1
-                for table_index in table_index[:-1]:
-                    W_t_current *= self.table_pairs[table_index][0].get_count()
-                W_t_current *= self.table_pairs[-1][1].get_count()
-                W_t = min(W_t, W_t_current)
-            return W_t
+            return self.permutations[join_index + 1]:
         except: # final table requested
             return self.table_pairs[-1][1].get_count()
-
 
     def compute_relation_weight(self, tuple_index, join_index):
         '''
@@ -94,6 +85,7 @@ class ExtendedOlkens:
             for m in to_remove:
                 del l[m]
             self.permutations[key] = l
+        self.__precompute_values()
 
     def __reursive_selection(self, choices, start_index, end_index, my_choices=set()):
         # base case, no more choices
@@ -113,3 +105,15 @@ class ExtendedOlkens:
         my_choices_2 = deepcopy(my_choices)
         my_choices_2.add(choices[0][1])
         self.__reursive_selection(choices[1:], start_index, end_index, my_choices=my_choices_2)
+
+    def __precompute_values(self):
+        for index in self.permutations:
+            W_t = float('inf')
+            for table_index_set in self.permutations[index]:
+                table_index = sorted(list(table_index_set))
+                W_t_current = 1
+                for table_index in table_index[:-1]:
+                    W_t_current *= self.table_pairs[table_index][0].get_count()
+                W_t_current *= self.table_pairs[-1][1].get_count()
+                W_t = min(W_t, W_t_current)
+            self.permutations[index] = W_t
