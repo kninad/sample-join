@@ -97,9 +97,9 @@ if __name__ == "__main__":
     method = config.get("EXPT", "METHOD")
     query_id = config.get("EXPT", "QUERY")
 
-    print "QUERY %s"%query_id
-    print "Getting %s samples using %s method. "%(num_samp, method)
-    print "Number of trials: %s"%(n_trials)
+    log.info("QUERY %s"%query_id)
+    log.info("Getting %s samples using %s method. "%(num_samp, method))
+    log.info("Number of trials: %s"%(n_trials))
 
     elapsed_time = timeit.timeit("get_samples(new_db, query_id, n_samples=num_samp, method=method)",
                                  number=n_trials,
@@ -107,5 +107,5 @@ if __name__ == "__main__":
 
     average_time = elapsed_time/n_trials
 
-    print "Total Time taken: %.3f seconds. "%(elapsed_time)
-    print "Average time to get %s samples: %.3f seconds."%(num_samp, average_time)
+    log.info("Total Time taken: %.3f seconds. "%(elapsed_time))
+    log.info("Average time to get %s samples: %.3f seconds."%(num_samp, average_time))
