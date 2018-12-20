@@ -81,8 +81,8 @@ class Table:
 
 
 def make_table(name, column_list=[], indexes=[]):
-    log.info("Creating table: %s"%name)
-    log.info("%s contains columns: %s"%(name, column_list))
+    # log.info("Creating table: %s"%name)
+    # log.info("%s contains columns: %s"%(name, column_list))
     return Table(name, columns=column_list, indexes=indexes)
 
 

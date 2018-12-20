@@ -82,6 +82,7 @@ class ParallelSampler(Dataset):
         tmp_samp = None
         while not tmp_flag:
             tmp_flag, tmp_samp = self.get_one_sample()
+        log.info("Sample: "+str(tmp_samp))
         stop = time.time()
         elapsed_time = stop - start
         # tuple_list = []
@@ -177,23 +178,40 @@ def get_samples(database, config):
 if __name__ == "__main__":
     args = getargs()
     config = read_config(args.config)
+    logging.basicConfig(filename=args.log, level=logging.INFO)
+
+    log.info("Loaded config file.")
+
+    seed_val = 42
+
+    np.random.seed(seed_val)
+    log.info("SEED: %s"%seed_val)
 
     new_db = TPCH.get_schema(config)
     load_db(new_db, config)
-    logging.basicConfig(filename=args.log, level=logging.INFO)
-    query_id, num_samp, _, n_trials = get_params(config)
+    query_id, num_samp, method, n_trials = get_params(config)
     log.info("QUERY %s" % query_id)
-    log.info("Getting %s samples using Reverse Sampling method. " % (num_samp))
+    log.info("Getting %s samples using %s method. " % (num_samp, method))
     log.info("Number of trials: %s" % (n_trials))
 
     time_per_trial = []
+
+    t1 = time.time()
+    
     for i in range(n_trials):
         elapsed_time = get_samples(new_db, config)
         time_per_trial.append(elapsed_time)
         log.info("Trial %s: %.3f seconds. "%(i, elapsed_time))
 
+    t2 = time.time()
+
+    avg_wall_clock_time = (t2 - t1)/n_trials
+    
     total_time = np.sum(time_per_trial)
     avg_time = np.mean(time_per_trial)
     std_dev = np.std(time_per_trial)
-    log.info("Total Time taken: %.3f seconds. " % (total_time))
+    
     log.info("Average time to get %s samples: %.3f  +/- %.3f seconds." % (num_samp, avg_time, std_dev))
+
+    log.info("Average Wall Clock Time: %.3f seconds."%(avg_wall_clock_time))
+    

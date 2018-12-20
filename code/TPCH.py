@@ -46,9 +46,7 @@ class TPCH:
                                                                       "PHONE", "ACCTBAL", "COMMENT"],
                                              indexes=['NATIONKEY'])
 
-        log.info("------------------------")
         log.info("Created TPCH Schema.")
-        log.info("------------------------")
 
 
 def get_schema(config):
