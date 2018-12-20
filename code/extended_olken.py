@@ -18,17 +18,19 @@ class ExtendedOlkens:
 
         RETURNS int - estimated join cardinality
         '''
-        if join_index == len(self.join_pairs) - 1:
+        try:
+            W_t = float('inf')
+            for table_index_set in self.permutations[join_index + 1]:
+                table_index = sorted(list(table_index_set))
+                W_t_current = 1
+                for table_index in table_index[:-1]:
+                    W_t_current *= self.table_pairs[table_index][0].get_count()
+                W_t_current *= self.table_pairs[-1][1].get_count()
+                W_t = min(W_t, W_t_current)
+            return W_t
+        except: # final table requested
             return self.table_pairs[-1][1].get_count()
-        W_t = float('inf')
-        for table_index_set in self.permutations[join_index + 1]:
-            table_index = sorted(list(table_index_set))
-            W_t_current = 1
-            for table_index in table_index[:-1]:
-                W_t_current *= self.table_pairs[table_index][0].get_count()
-            W_t_current *= self.table_pairs[-1][1].get_count()
-            W_t = min(W_t, W_t_current)
-        return W_t
+
 
     def compute_relation_weight(self, tuple_index, join_index):
         '''
