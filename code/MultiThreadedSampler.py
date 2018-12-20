@@ -6,7 +6,7 @@ import time
 import os, logging
 import TPCH
 from algo1 import get_single_sample, verify_tuple
-
+from join import chain_join
 from generalizing_olken import GeneralizedOlkens
 from extended_olken import ExtendedOlkens
 from exact_weight import ExactWeight
@@ -51,6 +51,7 @@ class ParallelSampler(Dataset):
         """
         self.cfg = cfg
         self.n_samples = cfg.getint("EXPT", "N_SAMPLES")
+        self.full_join_table = None
 
         if method == 'Generalizing-Olken':
             self.wtcomp_obj = GeneralizedOlkens(table_pairs, join_pairs)
@@ -58,8 +59,13 @@ class ParallelSampler(Dataset):
             self.wtcomp_obj = ExtendedOlkens(table_pairs, join_pairs)
         elif method == 'Exact-Weight':
             self.wtcomp_obj = ExactWeight(table_pairs, join_pairs)
+        elif method == 'Full-Join':
+            t1 = time.time()
+            self.full_join_table = chain_join(table_list, join_pairs)
+            t2 = time.time()
+            log.info("Full Join computation took: %.3f seconds."%(t2 - t1))
         else:
-            raise Exception("Invalid method argument")
+            raise Exception("Invalid Sampling Method.")
 
         self.table_pairs = table_pairs
         self.join_pairs = join_pairs
@@ -76,12 +82,16 @@ class ParallelSampler(Dataset):
         start = time.time()
         tmp_flag = False
         tmp_samp = None
-        while not tmp_flag:
-            tmp_flag, tmp_samp = get_single_sample(self.table_pairs, self.join_pairs, self.wtcomp_obj)
-        log.info("Sample: "+str(tmp_samp))
+        if self.full_join_table is not None:
+            idx = np.random.randint(0, self.full_join_table.get_count())
+        else:
+            while not tmp_flag:
+                tmp_flag, tmp_samp = get_single_sample(self.table_pairs, self.join_pairs, self.wtcomp_obj)
+            log.info("Sample: "+str(tmp_samp))
         stop = time.time()
         elapsed_time = stop - start
-        return elapsed_time
+        # return elapsed_time
+
         # tuple_list = []
         # for idx, t_idx in enumerate(tmp_samp):
         #     current_table = self.table_list[idx]
@@ -90,7 +100,7 @@ class ParallelSampler(Dataset):
         #     # print aTuple, current_table.name
         #
         # assert verify_tuple(tuple_list, self.join_pairs), "Verification failed."
-        # return True
+        return True
 
 
 def data_generator(config, method, table_list, table_pairs, join_pairs):
